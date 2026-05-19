@@ -27,6 +27,8 @@
 
 ## Quick Start
 
+> **New to Docker or need help setting Hatch as your new tab page?** See the [full setup guide](SETUP.md).
+
 ```yaml
 services:
   hatch:
