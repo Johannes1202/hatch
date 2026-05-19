@@ -3,8 +3,9 @@
 </p>
 
 <p align="center">
-  A clean, self-hosted start page for your browser.<br>
-  One Docker Compose file. No accounts, no tracking, no cloud required.
+  A clean, self-hosted start page that feels like home.<br>
+  The familiar search-and-shortcuts layout you already know — but yours to configure,<br>
+  with no accounts, no cloud, and your data staying on your own server.
 </p>
 
 ---
