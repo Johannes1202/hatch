@@ -76,6 +76,16 @@ Hatch works great over [Tailscale](https://tailscale.com) or [Cloudflare Tunnel]
 | **Settings** | ![Settings light](screenshots/screenshot-settings-light.png) | ![Settings dark](screenshots/screenshot-settings-dark.png) |
 | **Self-Hosted** | ![Self-hosted light](screenshots/screenshot-selfhosted-light.png) | ![Self-hosted dark](screenshots/screenshot-selfhosted-dark.png) |
 
+## Mobile
+
+Hatch is responsive and works on mobile browsers too — portrait (4 columns) and landscape (6 columns).
+
+| | Light | Dark |
+|---|---|---|
+| **Home** | ![Mobile light](screenshots/screenshot-mobile-light.png) | ![Mobile dark](screenshots/screenshot-mobile-dark.png) |
+| **Notes** | ![Mobile notes light](screenshots/screenshot-mobile-notes-light.png) | ![Mobile notes dark](screenshots/screenshot-mobile-notes-dark.png) |
+| **Settings** | ![Mobile settings light](screenshots/screenshot-mobile-settings-light.png) | ![Mobile settings dark](screenshots/screenshot-mobile-settings-dark.png) |
+
 ## Building from Source
 
 ```bash
