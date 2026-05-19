@@ -965,7 +965,7 @@
       </div>
     </div>
     <div class="settings-footer">
-      <span id="settingsVersion" style="font-size:12px;color:var(--text-muted)"></span>
+      <span id="settingsVersion" style="font-size:12px;color:var(--text-muted)">Hatch</span>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
         <button class="btn btn-primary" onclick="saveSettings()">Save</button>
@@ -1065,7 +1065,7 @@ async function loadVersion() {
   try {
     const res = await apiFetch('/api/version');
     const d = await res.json();
-    if (d.version) document.getElementById('settingsVersion').textContent = 'v' + d.version;
+    if (d.version) document.getElementById('settingsVersion').textContent = 'Hatch · v' + d.version;
   } catch {}
 }
 
