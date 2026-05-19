@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hatch</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface2: #f1f3f4;
+    --text: #202124;
+    --text-muted: #5f6368;
+    --border: #dadce0;
+    --border-hover: #bdc1c6;
+    --input-border: #dfe1e5;
+    --shadow-sm: rgba(0,0,0,0.08);
+    --shadow-md: rgba(0,0,0,0.18);
+    --accent: #1a73e8;
+    --danger: #c5221f;
+    --tile-hover: #f1f3f4;
+    --search-bg: #ffffff;
+  }
+
+  [data-theme="dark"] {
+    --bg: #202124;
+    --surface: #292a2d;
+    --surface2: #35363a;
+    --text: #e8eaed;
+    --text-muted: #9aa0a6;
+    --border: #5f6368;
+    --border-hover: #80868b;
+    --input-border: #5f6368;
+    --shadow-sm: rgba(0,0,0,0.3);
+    --shadow-md: rgba(0,0,0,0.5);
+    --accent: #8ab4f8;
+    --danger: #f28b82;
+    --tile-hover: #35363a;
+    --search-bg: #303134;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', 'Google Sans', Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.2s, color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 296px;
+    padding-bottom: 40px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  #greeting {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    z-index: 10;
+    letter-spacing: -0.01em;
+  }
+
+  #clock {
+    position: fixed;
+    top: 54px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 48px;
+    font-weight: 400;
+    color: var(--text);
+    letter-spacing: -1px;
+    line-height: 1;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  #date {
+    position: fixed;
+    top: 112px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 15px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  #weather {
+    position: fixed;
+    top: 138px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 14px;
+    color: var(--text-muted);
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    z-index: 10;
+  }
+
+  #weather .weather-icon { font-size: 18px; }
+
+  .search-section {
+    position: fixed;
+    top: 190px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 580px;
+    z-index: 10;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--input-border);
+    border-radius: 24px;
+    padding: 10px 20px;
+    gap: 12px;
+    transition: box-shadow 0.2s;
+    background: var(--search-bg);
+  }
+
+  .search-box:focus-within {
+    box-shadow: 0 2px 8px var(--shadow-md);
+    border-color: transparent;
+  }
+
+  /* ── Suggestions dropdown ── */
+  .suggest-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  #suggest-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px var(--shadow-md);
+    overflow: hidden;
+    z-index: 100;
+    display: none;
+  }
+
+  #suggest-list.show { display: block; }
+
+  .suggest-item {
+    padding: 10px 20px;
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .suggest-item:hover,
+  .suggest-item.active { background: var(--tile-hover); }
+
+  .suggest-item svg { color: var(--text-muted); flex-shrink: 0; }
+
+  .search-icon { color: var(--text-muted); flex-shrink: 0; }
+
+  .search-box input {
+    border: none;
+    outline: none;
+    font-size: 16px;
+    width: 100%;
+    color: var(--text);
+    background: transparent;
+  }
+
+  .profiles-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 980px;
+  }
+
+  .profile-tab {
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    background: transparent;
+    transition: background 0.15s, border-color 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .profile-tab:hover { background: var(--tile-hover); border-color: var(--border-hover); }
+  .profile-tab.active { background: var(--tile-hover); color: var(--text); font-weight: 600; border-color: var(--text); }
+
+  #profileCtxMenu {
+    position: fixed;
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px var(--shadow-md);
+    padding: 6px 0;
+    z-index: 1000;
+    min-width: 140px;
+    display: none;
+  }
+  #profileCtxMenu.show { display: block; }
+
+  .btn-add-profile {
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    font-family: inherit;
+  }
+
+  .btn-add-profile:hover { background: var(--tile-hover); color: var(--text-muted); }
+
+  .shortcuts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 96px);
+    gap: 4px;
+    max-width: 980px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text);
+    position: relative;
+    user-select: none;
+    transition: background 0.15s, transform 0.12s ease;
+  }
+
+  .tile:hover { background: var(--tile-hover); transform: scale(1.07); }
+  .tile:active { transform: scale(0.93); background: var(--tile-hover); }
+  .tile.drag-over { background: rgba(26,115,232,0.12); }
+  .tile.dragging { opacity: 0.4; }
+
+  .favicon-wrap {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: var(--tile-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px var(--shadow-sm), 0 0 0 1px var(--shadow-sm);
+  }
+
+  .favicon-wrap img { width: 28px; height: 28px; object-fit: contain; }
+
+  .favicon-letter {
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .tile-label {
+    font-size: 12px;
+    color: var(--text);
+    text-align: center;
+    max-width: 72px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tile-add .favicon-wrap {
+    background: var(--surface);
+    border: 2px dashed var(--border);
+  }
+
+  .tile-add .favicon-wrap svg { color: var(--text-muted); }
+  .tile-add .tile-label { color: var(--text-muted); }
+  .tile-add:hover .favicon-wrap { background: var(--tile-hover); border-color: var(--border-hover); }
+
+  /* ── Context menus ── */
+  .ctx-menu {
+    position: fixed;
+    background: var(--surface);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px var(--shadow-md);
+    padding: 6px 0;
+    z-index: 1000;
+    min-width: 140px;
+    display: none;
+  }
+
+  .ctx-menu.show { display: block; }
+
+  .ctx-item {
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ctx-item:hover { background: var(--tile-hover); }
+  .ctx-item.danger { color: var(--danger); }
+
+  /* ── Modals ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+
+  .modal-overlay.show { opacity: 1; visibility: visible; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 28px;
+    width: 360px;
+    box-shadow: 0 8px 32px var(--shadow-md);
+    transform: translateY(16px);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .modal-overlay.show .modal { transform: translateY(0); }
+
+  .modal h3 {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+
+  .modal input {
+    width: 100%;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 15px;
+    margin-bottom: 14px;
+    outline: none;
+    color: var(--text);
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+
+  .modal input:focus { border-color: var(--accent); }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .btn { padding: 9px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; }
+  .btn-ghost { background: transparent; color: var(--accent); }
+  .btn-ghost:hover { background: rgba(26,115,232,0.12); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent); }
+
+  /* ── Fixed action buttons ── */
+  .fixed-btn {
+    position: fixed;
+    right: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    color: var(--text);
+    padding: 8px;
+    border-radius: 12px;
+    transition: background 0.15s;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: inherit;
+  }
+  .fixed-btn:hover { background: var(--tile-hover); }
+  .fixed-btn .favicon-wrap { margin-bottom: 0; }
+  .fixed-btn span { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+  #settings-btn { top: 24px; }
+  #mail-btn { top: 110px; }
+
+  /* ── Settings modal ── */
+  .settings-modal {
+    width: 480px;
+    max-height: 80vh;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .settings-header {
+    flex-shrink: 0;
+    padding: 28px 28px 0;
+  }
+
+  .settings-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 28px 8px;
+  }
+
+  .settings-footer {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 28px;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 16px 16px;
+    background: var(--surface);
+  }
+
+  .settings-section { margin-bottom: 24px; }
+
+  .settings-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--text);
+    gap: 16px;
+  }
+
+  .settings-row label { flex: 1; }
+  .settings-row label.toggle { flex: none; width: 44px; }
+
+  .settings-row input[type="number"],
+  .settings-row input[type="text"],
+  .settings-row select {
+    width: 180px;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .settings-row input:focus, .settings-row select:focus { border-color: var(--accent); }
+
+  /* Toggle switch */
+  .toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; margin: 0; padding: 0; }
+  .toggle-slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+  .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+  .settings-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: -8px;
+    margin-bottom: 8px;
+    padding: 0 2px;
+  }
+
+  /* ── Notes tray ── */
+  #notepad-wrap {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50%;
+    z-index: 100;
+    font-family: inherit;
+  }
+
+  #notepad-header {
+    display: flex;
+    align-items: center;
+    background: var(--tile-hover);
+    border: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    border-radius: 10px 10px 0 0;
+    user-select: none;
+    min-height: 48px;
+  }
+
+  #notepad-header-left {
+    display: flex;
+    align-items: center;
+    padding: 8px 4px 8px 8px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+  }
+
+  #notepad-tabs-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    overflow-x: auto;
+    padding: 6px 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  #notepad-tabs-bar::-webkit-scrollbar { height: 3px; }
+  #notepad-tabs-bar::-webkit-scrollbar-track { background: transparent; }
+  #notepad-tabs-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  #notepad-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 10px 8px 0;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+  }
+
+  .note-tab {
+    padding: 5px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    background: transparent;
+    white-space: nowrap;
+    transition: background 0.15s;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+
+  .note-tab:hover { background: var(--tile-hover); border-color: var(--border-hover); }
+  .note-tab.active { background: var(--tile-hover); color: var(--text); font-weight: 600; border-color: var(--text); }
+
+  #notepad-add {
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  #notepad-add:hover { background: var(--tile-hover); color: var(--text); }
+
+  #notepad-toggle {
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 6px;
+    font-family: inherit;
+  }
+
+  #notepad-toggle:hover { color: var(--text); }
+
+  #notepad-body {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 0;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #notepad-body.open {
+    height: calc(100vh - 48px);
+  }
+
+  /* ── Notes toolbar ── */
+  #notepad-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+
+  .fmt-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+  }
+
+  .fmt-btn:hover { background: var(--tile-hover); color: var(--text); }
+  .fmt-btn.active { background: var(--tile-hover); color: var(--text); }
+
+  .fmt-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  #fmt-size {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+  }
+
+  #notepad-editor {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-family: 'Roboto Mono', monospace, inherit;
+    color: var(--text-muted);
+    background: var(--surface);
+    line-height: 1.6;
+    outline: none;
+    overflow-y: auto;
+  }
+
+  #notepad-editor:empty:before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  /* ── Login overlay ── */
+  #loginOverlay {
+    position: fixed;
+    inset: 0;
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+  }
+
+  #loginOverlay.hidden { display: none; }
+
+  .login-box {
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .login-box h2 {
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .login-box input {
+    width: 100%;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 15px;
+    outline: none;
+    color: var(--text);
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+
+  .login-box input:focus { border-color: var(--accent); }
+
+  .login-box button {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .login-box button:hover { background: var(--accent); }
+
+  #loginError {
+    font-size: 13px;
+    color: var(--danger);
+    min-height: 18px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Login overlay -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <h2>Start</h2>
+    <input type="password" id="loginPassword" placeholder="Password" autofocus>
+    <div id="loginError"></div>
+    <button id="loginBtn">Sign in</button>
+  </div>
+</div>
+
+<button id="mail-btn" class="fixed-btn" onclick="openMail()">
+  <div class="favicon-wrap">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted)">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <polyline points="2,4 12,13 22,4"/>
+    </svg>
+  </div>
+  <span>Mail</span>
+</button>
+
+<button id="settings-btn" class="fixed-btn" onclick="openSettings()">
+  <div class="favicon-wrap">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="color:#5f6368">
+      <path d="M19.14 12.94c.04-.3.06-.61.06-.94s-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96a7.01 7.01 0 0 0-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.07.63-.07.94s.02.64.07.94l-2.03 1.58a.47.47 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/>
+    </svg>
+  </div>
+  <span>Settings</span>
+</button>
+
+<div id="greeting"></div>
+<div id="clock"></div>
+<div id="date"></div>
+<div id="weather"><span class="weather-icon">⋯</span><span id="weather-text">Fetching weather...</span></div>
+
+<div class="search-section">
+  <form class="search-box" id="searchForm" method="get">
+    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+    </svg>
+    <div class="suggest-wrap">
+      <input name="q" id="searchInput" type="text" placeholder="Search" autofocus autocomplete="off">
+      <div id="suggest-list"></div>
+    </div>
+  </form>
+</div>
+
+<div class="profiles-bar" id="profilesBar"></div>
+<div class="shortcuts" id="shortcuts"></div>
+
+<!-- Shortcut context menu -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" id="ctxOpenNewTab">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+    Open in new tab
+  </div>
+  <div class="ctx-item" id="ctxEdit">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+    Edit
+  </div>
+  <div class="ctx-item danger" id="ctxDelete">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+    Remove
+  </div>
+</div>
+
+<!-- Profile context menu -->
+<div id="profileCtxMenu">
+  <div class="ctx-item" id="profileCtxRename">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+    Rename
+  </div>
+  <div class="ctx-item danger" id="profileCtxDelete">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+    Delete
+  </div>
+</div>
+
+<!-- Note tab context menu -->
+<div class="ctx-menu" id="noteCtxMenu">
+  <div class="ctx-item" id="noteCtxRename">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+    Rename
+  </div>
+  <div class="ctx-item danger" id="noteCtxDelete">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+    Delete
+  </div>
+</div>
+
+<!-- Shortcut modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add shortcut</h3>
+    <input type="text" id="inputName" placeholder="Name" maxlength="30">
+    <input type="url" id="inputUrl" placeholder="URL">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile modal -->
+<div class="modal-overlay" id="profileModalOverlay">
+  <div class="modal">
+    <h3 id="profileModalTitle">New profile</h3>
+    <input type="text" id="inputProfileName" placeholder="Profile name" maxlength="30">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnProfileCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnProfileSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Note rename modal -->
+<div class="modal-overlay" id="noteModalOverlay">
+  <div class="modal">
+    <h3>Rename note</h3>
+    <input type="text" id="inputNoteName" placeholder="Note name" maxlength="30">
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnNoteCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnNoteSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="settingsOverlay">
+  <div class="modal settings-modal">
+    <div class="settings-header"><h3>Settings</h3></div>
+    <div class="settings-body">
+      <div class="settings-section">
+        <div class="settings-section-title">Appearance</div>
+        <div class="settings-row">
+          <label>Follow system theme</label>
+          <label class="toggle">
+            <input type="checkbox" id="cfgDarkModeAuto">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row" id="darkModeRow">
+          <label>Dark mode</label>
+          <label class="toggle">
+            <input type="checkbox" id="cfgDarkMode">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <label>Shortcuts per row</label>
+          <input type="number" id="cfgCols" min="3" max="20" value="10">
+        </div>
+        <div class="settings-row">
+          <label>Clock format</label>
+          <select id="cfgClockFormat">
+            <option value="24">24-hour</option>
+            <option value="12">12-hour</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label>Clock style</label>
+          <select id="cfgClockStyle">
+            <option value="minimal">Minimal (time only)</option>
+            <option value="standard">Standard (time + date)</option>
+            <option value="verbose">Verbose (time + full date)</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label>Your name</label>
+          <input type="text" id="cfgName" placeholder="Optional — used in greeting" maxlength="30">
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Search</div>
+        <div class="settings-row">
+          <label>Search engine</label>
+          <select id="cfgSearch">
+            <option value="google">Google</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="brave">Brave</option>
+            <option value="bing">Bing</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Weather</div>
+        <div class="settings-row">
+          <label>Temperature unit</label>
+          <select id="cfgTempUnit">
+            <option value="C">Celsius (°C)</option>
+            <option value="F">Fahrenheit (°F)</option>
+          </select>
+        </div>
+        <div class="settings-row">
+          <label>Location override</label>
+          <input type="text" id="cfgWeatherCity" placeholder="City name (blank = auto)">
+        </div>
+      </div>
+      <div class="settings-section">
+        <div class="settings-section-title">Mail</div>
+        <div class="settings-row">
+          <label>Mail URL</label>
+          <input type="text" id="cfgMailUrl" placeholder="https://mail.proton.me">
+        </div>
+        <div class="settings-note">Leave blank to hide the mail button.</div>
+      </div>
+    </div>
+    <div class="settings-footer">
+      <span id="settingsVersion" style="font-size:12px;color:var(--text-muted)"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="closeSettings()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notes tray -->
+<div id="notepad-wrap">
+  <div id="notepad-header">
+    <div id="notepad-header-left">
+      <button id="notepad-add">+ Add note</button>
+    </div>
+    <div id="notepad-tabs-bar"></div>
+    <div id="notepad-header-actions">
+      <button id="notepad-toggle" title="Toggle notes">▲</button>
+    </div>
+  </div>
+  <div id="notepad-body">
+    <div id="notepad-toolbar">
+      <button class="fmt-btn" data-cmd="bold" title="Bold"><b>B</b></button>
+      <button class="fmt-btn" data-cmd="italic" title="Italic"><i>I</i></button>
+      <button class="fmt-btn" data-cmd="underline" title="Underline"><u>U</u></button>
+      <div class="fmt-divider"></div>
+      <select id="fmt-size" title="Font size">
+        <option value="2">Small</option>
+        <option value="3" selected>Normal</option>
+        <option value="5">Large</option>
+      </select>
+    </div>
+    <div id="notepad-editor" contenteditable="true" spellcheck="true" data-placeholder="Start typing..."></div>
+  </div>
+</div>
+
+<script>
+// ── Config ──
+const SEARCH_ENGINES = {
+  google: 'https://www.google.com/search',
+  duckduckgo: 'https://duckduckgo.com/',
+  brave: 'https://search.brave.com/search',
+  bing: 'https://www.bing.com/search'
+};
+
+let cfg = {};
+
+async function loadConfig() {
+  try {
+    const res = await apiFetch('/api/config');
+    cfg = await res.json();
+  } catch { cfg = {}; }
+}
+
+function applyConfig() {
+  // Dark mode
+  const auto = cfg.dark_mode_auto !== false;
+  const dark = auto ? window.matchMedia('(prefers-color-scheme: dark)').matches : (cfg.dark_mode || false);
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+
+  // Shortcuts per row
+  document.querySelector('.shortcuts').style.gridTemplateColumns =
+    `repeat(${cfg.cols || 10}, 96px)`;
+
+  // Search engine
+  const form = document.getElementById('searchForm');
+  form.action = SEARCH_ENGINES[cfg.search_engine] || SEARCH_ENGINES.google;
+
+  // Greeting
+  updateGreeting();
+}
+
+function updateGreeting() {
+  const h = new Date().getHours();
+  const base = h < 12 ? 'Good Morning' : h < 17 ? 'Good Afternoon' : 'Good Evening';
+  const name = (cfg.name || '').trim();
+  document.getElementById('greeting').textContent = name ? base + ', ' + name : base;
+}
+
+function openSettings() {
+  const auto = cfg.dark_mode_auto !== false;
+  document.getElementById('cfgDarkModeAuto').checked = auto;
+  document.getElementById('darkModeRow').style.display = auto ? 'none' : '';
+  document.getElementById('cfgDarkMode').checked = cfg.dark_mode || false;
+  document.getElementById('cfgCols').value = cfg.cols || 10;
+  document.getElementById('cfgClockFormat').value = cfg.clock_format || '24';
+  document.getElementById('cfgClockStyle').value = cfg.clock_style || 'standard';
+  document.getElementById('cfgSearch').value = cfg.search_engine || 'google';
+  document.getElementById('cfgTempUnit').value = cfg.temp_unit || 'C';
+  document.getElementById('cfgWeatherCity').value = cfg.weather_city || '';
+  document.getElementById('cfgMailUrl').value = cfg.mail_url || '';
+  document.getElementById('cfgName').value = cfg.name || '';
+  loadVersion();
+  document.getElementById('settingsOverlay').classList.add('show');
+}
+
+async function loadVersion() {
+  try {
+    const res = await apiFetch('/api/version');
+    const d = await res.json();
+    if (d.version) document.getElementById('settingsVersion').textContent = 'v' + d.version;
+  } catch {}
+}
+
+function openMail() {
+  if (cfg.mail_url) {
+    const url = /^https?:\/\//i.test(cfg.mail_url) ? cfg.mail_url : 'https://' + cfg.mail_url;
+    window.open(url, '_blank');
+  } else {
+    openSettings();
+    setTimeout(() => document.getElementById('cfgMailUrl').focus(), 200);
+  }
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+}
+
+async function saveSettings() {
+  cfg.dark_mode_auto = document.getElementById('cfgDarkModeAuto').checked;
+  cfg.dark_mode = document.getElementById('cfgDarkMode').checked;
+  cfg.cols = parseInt(document.getElementById('cfgCols').value) || 10;
+  cfg.clock_format = document.getElementById('cfgClockFormat').value;
+  cfg.clock_style = document.getElementById('cfgClockStyle').value;
+  cfg.search_engine = document.getElementById('cfgSearch').value;
+  cfg.temp_unit = document.getElementById('cfgTempUnit').value;
+  cfg.weather_city = document.getElementById('cfgWeatherCity').value.trim();
+  cfg.mail_url = document.getElementById('cfgMailUrl').value.trim();
+  cfg.name = document.getElementById('cfgName').value.trim();
+  await apiFetch('/api/config', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(cfg)
+  });
+  closeSettings();
+  applyConfig();
+  startWeather();
+}
+
+document.getElementById('settingsOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('settingsOverlay')) closeSettings();
+});
+
+document.getElementById('cfgDarkModeAuto').addEventListener('change', function() {
+  document.getElementById('darkModeRow').style.display = this.checked ? 'none' : '';
+});
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (cfg.dark_mode_auto !== false) applyConfig();
+});
+
+// ── Clock ──
+function updateClock() {
+  const now = new Date();
+  const style = cfg.clock_style || 'standard';
+  const use12 = (cfg.clock_format || '24') === '12';
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: use12});
+  const dateEl = document.getElementById('date');
+  if (style === 'minimal') {
+    dateEl.textContent = '';
+  } else if (style === 'verbose') {
+    dateEl.textContent = now.toLocaleDateString([], {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  } else {
+    dateEl.textContent = now.toLocaleDateString([], {weekday:'long', month:'long', day:'numeric'});
+  }
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── Weather ──
+function renderWeather(d) {
+  if (!d || d.error) throw new Error('no data');
+  if ((cfg.temp_unit || 'C') === 'F') {
+    d.temp = Math.round(d.temp * 9/5 + 32);
+    d.feels = Math.round(d.feels * 9/5 + 32);
+  }
+  const unit = (cfg.temp_unit || 'C') === 'F' ? '°F' : '°C';
+  const codeMap = {
+    0:['☀️','Clear'], 1:['☀️','Mainly clear'], 2:['⛅','Partly cloudy'], 3:['☁️','Overcast'],
+    45:['🌫️','Fog'], 48:['🌫️','Fog'],
+    51:['🌦️','Drizzle'], 53:['🌦️','Drizzle'], 55:['🌦️','Drizzle'],
+    61:['🌧️','Rain'], 63:['🌧️','Rain'], 65:['🌧️','Heavy rain'],
+    71:['❄️','Snow'], 73:['❄️','Snow'], 75:['❄️','Heavy snow'],
+    80:['🌧️','Showers'], 81:['🌧️','Showers'], 82:['🌧️','Heavy showers'],
+    95:['⛈️','Thunderstorm'], 96:['⛈️','Thunderstorm'], 99:['⛈️','Thunderstorm']
+  };
+  const [icon, desc] = codeMap[d.code] || ['🌡️','Unknown'];
+  document.querySelector('.weather-icon').textContent = icon;
+  document.getElementById('weather-text').textContent =
+    d.temp + unit + ' · Feels like ' + d.feels + unit + ' · ' + desc + (d.city ? ' · ' + d.city : '');
+}
+
+function loadWeather(lat, lon) {
+  const token = getToken();
+  if (!token) return;
+  let params = '';
+  if (cfg.weather_city) {
+    params = '?city=' + encodeURIComponent(cfg.weather_city);
+  } else if (lat != null && lon != null) {
+    params = '?lat=' + lat + '&lon=' + lon;
+  }
+  fetch('/api/weather' + params, { headers: { 'X-Token': token } })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(renderWeather)
+    .catch(() => { document.getElementById('weather').style.display = 'none'; });
+}
+
+function startWeather() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      p => loadWeather(p.coords.latitude.toFixed(4), p.coords.longitude.toFixed(4)),
+      () => loadWeather(),
+      { timeout: 8000 }
+    );
+  } else {
+    loadWeather();
+  }
+}
+
+// ── Auth ──
+function getToken() { return localStorage.getItem('sp_token'); }
+function setToken(t) { localStorage.setItem('sp_token', t); }
+function clearToken() { localStorage.removeItem('sp_token'); }
+
+function showLogin(msg) {
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('loginError').textContent = msg || '';
+  document.getElementById('loginPassword').value = '';
+  setTimeout(() => document.getElementById('loginPassword').focus(), 50);
+}
+
+function hideLogin() {
+  document.getElementById('loginOverlay').classList.add('hidden');
+}
+
+async function doLogin() {
+  const pw = document.getElementById('loginPassword').value;
+  if (!pw) return;
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: pw})
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setToken(data.token);
+      hideLogin();
+      init();
+    } else {
+      showLogin('Wrong password.');
+    }
+  } catch {
+    showLogin('Could not connect.');
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── API ──
+const API = '/api/shortcuts';
+
+async function apiFetch(url, opts = {}) {
+  const token = getToken();
+  opts.headers = Object.assign({}, opts.headers, {'X-Token': token || ''});
+  const res = await fetch(url, opts);
+  if (res.status === 401) {
+    clearToken();
+    showLogin('Session expired. Please sign in again.');
+    throw new Error('unauthorized');
+  }
+  return res;
+}
+
+async function loadData() {
+  const res = await apiFetch(API);
+  return res.json();
+}
+
+async function saveData(d) {
+  await apiFetch(API, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(d)
+  });
+}
+
+// ── State ──
+let data = { profiles: [] };
+let activeProfile = localStorage.getItem('activeProfile');
+
+async function init() {
+  try {
+    data = await loadData();
+  } catch {
+    return;
+  }
+  if (!data.profiles) data = { profiles: [] };
+  if (data.profiles.length === 0) {
+    data.profiles.push({ id: 'home', name: 'Home', shortcuts: [] });
+    await saveData(data);
+  }
+  if (!activeProfile || !data.profiles.find(p => p.id === activeProfile)) {
+    activeProfile = data.profiles[0].id;
+    localStorage.setItem('activeProfile', activeProfile);
+  }
+  await loadConfig();
+  applyConfig();
+  render();
+  startWeather();
+  document.querySelector('.search-box input').focus();
+  await loadNotes();
+}
+
+function activeProfileObj() {
+  return data.profiles.find(p => p.id === activeProfile);
+}
+
+function render() {
+  renderProfiles();
+  renderShortcuts();
+}
+
+function renderProfiles() {
+  const bar = document.getElementById('profilesBar');
+  bar.innerHTML = '';
+  data.profiles.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'profile-tab' + (p.id === activeProfile ? ' active' : '');
+    btn.textContent = p.name;
+    btn.addEventListener('click', () => {
+      activeProfile = p.id;
+      localStorage.setItem('activeProfile', activeProfile);
+      render();
+    });
+    btn.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      profileCtxTarget = p.id;
+      showProfileCtx(e.clientX, e.clientY);
+    });
+    bar.appendChild(btn);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn-add-profile';
+  addBtn.textContent = '+ Add profile';
+  addBtn.addEventListener('click', () => openProfileModal());
+  bar.appendChild(addBtn);
+}
+
+function faviconUrl(url) {
+  try { new URL(url); return '/api/favicon?url=' + encodeURIComponent(url); }
+  catch { return null; }
+}
+
+function letterEl(name) {
+  const span = document.createElement('span');
+  span.className = 'favicon-letter';
+  span.textContent = name[0] || '?';
+  return span;
+}
+
+let dragSrc = null;
+
+function makeTile(s) {
+  const a = document.createElement('a');
+  a.className = 'tile';
+  a.href = s.url;
+  a.draggable = true;
+  a.dataset.id = s.id;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'favicon-wrap';
+  const imgSrc = faviconUrl(s.url);
+  if (imgSrc) {
+    const img = document.createElement('img');
+    img.src = imgSrc;
+    img.onerror = () => img.replaceWith(letterEl(s.name));
+    wrap.appendChild(img);
+  } else {
+    wrap.appendChild(letterEl(s.name));
+  }
+
+  const label = document.createElement('span');
+  label.className = 'tile-label';
+  label.textContent = s.name;
+  a.appendChild(wrap);
+  a.appendChild(label);
+
+  a.addEventListener('dragstart', e => {
+    dragSrc = a;
+    a.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  a.addEventListener('dragend', () => a.classList.remove('dragging'));
+  a.addEventListener('dragover', e => { e.preventDefault(); a.classList.add('drag-over'); });
+  a.addEventListener('dragleave', () => a.classList.remove('drag-over'));
+  a.addEventListener('drop', async e => {
+    e.preventDefault();
+    a.classList.remove('drag-over');
+    if (dragSrc && dragSrc !== a) {
+      const prof = activeProfileObj();
+      const si = prof.shortcuts.findIndex(x => x.id === dragSrc.dataset.id);
+      const di = prof.shortcuts.findIndex(x => x.id === a.dataset.id);
+      const [moved] = prof.shortcuts.splice(si, 1);
+      prof.shortcuts.splice(di, 0, moved);
+      await saveData(data);
+      render();
+    }
+  });
+  a.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    ctxTarget = s.id;
+    showCtx(e.clientX, e.clientY);
+  });
+  return a;
+}
+
+function makeAddTile() {
+  const div = document.createElement('div');
+  div.className = 'tile tile-add';
+  div.innerHTML = '<div class="favicon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div><span class="tile-label">Add shortcut</span>';
+  div.addEventListener('click', () => openModal());
+  return div;
+}
+
+function renderShortcuts() {
+  const grid = document.getElementById('shortcuts');
+  grid.innerHTML = '';
+  const prof = activeProfileObj();
+  if (prof) prof.shortcuts.forEach(s => grid.appendChild(makeTile(s)));
+  grid.appendChild(makeAddTile());
+}
+
+// ── Context menus ──
+let ctxTarget = null;
+let profileCtxTarget = null;
+
+function placeMenu(m, x, y) {
+  m.style.left = x + 'px';
+  m.style.top = y + 'px';
+  m.classList.add('show');
+  const rect = m.getBoundingClientRect();
+  if (rect.bottom > window.innerHeight - 8) {
+    m.style.top = (y - rect.height) + 'px';
+  }
+  if (rect.right > window.innerWidth - 8) {
+    m.style.left = (x - rect.width) + 'px';
+  }
+}
+
+function showCtx(x, y) {
+  placeMenu(document.getElementById('ctxMenu'), x, y);
+}
+
+function showProfileCtx(x, y) {
+  document.getElementById('ctxMenu').classList.remove('show');
+  placeMenu(document.getElementById('profileCtxMenu'), x, y);
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('ctxMenu').classList.remove('show');
+  document.getElementById('profileCtxMenu').classList.remove('show');
+  document.getElementById('noteCtxMenu').classList.remove('show');
+});
+
+document.getElementById('profileCtxRename').addEventListener('click', () => {
+  const p = data.profiles.find(x => x.id === profileCtxTarget);
+  if (p) openProfileModal(p);
+  profileCtxTarget = null;
+});
+
+document.getElementById('profileCtxDelete').addEventListener('click', async () => {
+  if (!profileCtxTarget) return;
+  if (data.profiles.length === 1) return;
+  data.profiles = data.profiles.filter(x => x.id !== profileCtxTarget);
+  if (activeProfile === profileCtxTarget) {
+    activeProfile = data.profiles[0].id;
+    localStorage.setItem('activeProfile', activeProfile);
+  }
+  profileCtxTarget = null;
+  await saveData(data);
+  render();
+});
+
+document.getElementById('ctxOpenNewTab').addEventListener('click', () => {
+  const prof = activeProfileObj();
+  const s = prof && prof.shortcuts.find(x => x.id === ctxTarget);
+  if (s) window.open(s.url, '_blank');
+  ctxTarget = null;
+});
+
+document.getElementById('ctxEdit').addEventListener('click', () => {
+  const prof = activeProfileObj();
+  const s = prof && prof.shortcuts.find(x => x.id === ctxTarget);
+  if (s) openModal(s);
+});
+
+document.getElementById('ctxDelete').addEventListener('click', async () => {
+  if (!ctxTarget) return;
+  const prof = activeProfileObj();
+  prof.shortcuts = prof.shortcuts.filter(x => x.id !== ctxTarget);
+  await saveData(data);
+  render();
+  ctxTarget = null;
+});
+
+// ── Shortcut modal ──
+let editingId = null;
+
+function openModal(s) {
+  editingId = s ? s.id : null;
+  document.getElementById('modalTitle').textContent = s ? 'Edit shortcut' : 'Add shortcut';
+  document.getElementById('inputName').value = s ? s.name : '';
+  document.getElementById('inputUrl').value = s ? s.url : '';
+  document.getElementById('modalOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('inputName').focus(), 50);
+}
+
+document.getElementById('btnCancel').addEventListener('click', () =>
+  document.getElementById('modalOverlay').classList.remove('show'));
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('show');
+});
+document.getElementById('inputUrl').addEventListener('keydown', e => { if (e.key === 'Enter') saveShortcut(); });
+document.getElementById('btnSave').addEventListener('click', saveShortcut);
+
+async function saveShortcut() {
+  const name = document.getElementById('inputName').value.trim();
+  let url = document.getElementById('inputUrl').value.trim();
+  if (!name || !url) return;
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  const prof = activeProfileObj();
+  if (editingId) {
+    const s = prof.shortcuts.find(x => x.id === editingId);
+    if (s) { s.name = name; s.url = url; }
+  } else {
+    prof.shortcuts.push({ id: Date.now().toString(36), name, url });
+  }
+  await saveData(data);
+  document.getElementById('modalOverlay').classList.remove('show');
+  render();
+}
+
+// ── Profile modal ──
+let editingProfileId = null;
+
+function openProfileModal(p) {
+  editingProfileId = p ? p.id : null;
+  document.getElementById('profileModalTitle').textContent = p ? 'Rename profile' : 'New profile';
+  document.getElementById('inputProfileName').value = p ? p.name : '';
+  document.getElementById('profileModalOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('inputProfileName').focus(), 50);
+}
+
+document.getElementById('btnProfileCancel').addEventListener('click', () =>
+  document.getElementById('profileModalOverlay').classList.remove('show'));
+document.getElementById('profileModalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('profileModalOverlay'))
+    document.getElementById('profileModalOverlay').classList.remove('show');
+});
+document.getElementById('inputProfileName').addEventListener('keydown', e => { if (e.key === 'Enter') saveProfile(); });
+document.getElementById('btnProfileSave').addEventListener('click', saveProfile);
+
+async function saveProfile() {
+  const name = document.getElementById('inputProfileName').value.trim();
+  if (!name) return;
+  if (editingProfileId) {
+    const p = data.profiles.find(x => x.id === editingProfileId);
+    if (p) p.name = name;
+  } else {
+    const id = Date.now().toString(36);
+    data.profiles.push({ id, name, shortcuts: [] });
+    activeProfile = id;
+    localStorage.setItem('activeProfile', activeProfile);
+  }
+  await saveData(data);
+  document.getElementById('profileModalOverlay').classList.remove('show');
+  render();
+}
+
+// ── Notes ──
+let notes = { tabs: [], active_tab: null };
+let noteCtxTarget = null;
+let editingNoteId = null;
+let noteSaveTimer = null;
+
+function activeNote() {
+  return notes.tabs.find(t => t.id === notes.active_tab);
+}
+
+async function loadNotes() {
+  const res = await apiFetch('/api/notes');
+  notes = await res.json();
+  if (!notes.tabs || notes.tabs.length === 0) {
+    notes = { tabs: [{ id: 'default', name: 'Notes', content: '' }], active_tab: 'default' };
+  }
+  if (!notes.active_tab || !notes.tabs.find(t => t.id === notes.active_tab)) {
+    notes.active_tab = notes.tabs[0].id;
+  }
+  document.getElementById('notepad-add').addEventListener('click', e => {
+    e.stopPropagation();
+    const current = activeNote();
+    if (current) current.content = document.getElementById('notepad-editor').innerHTML;
+    const id = Date.now().toString(36);
+    const nums = notes.tabs.map(t => { const m = t.name.match(/^New note (\d+)$/i); return m ? parseInt(m[1]) : 0; });
+    const name = 'New note ' + (Math.max(0, ...nums) + 1);
+    notes.tabs.push({ id, name, content: '' });
+    notes.active_tab = id;
+    saveNotes();
+    renderNotes();
+  });
+  renderNotes();
+  if (localStorage.getItem('notepad-open') === '1') expandNotes();
+}
+
+async function saveNotes() {
+  await apiFetch('/api/notes', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(notes)
+  });
+}
+
+function renderNotes() {
+  const bar = document.getElementById('notepad-tabs-bar');
+  bar.innerHTML = '';
+  notes.tabs.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'note-tab' + (t.id === notes.active_tab ? ' active' : '');
+    btn.textContent = t.name;
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const current = activeNote();
+      if (current) current.content = document.getElementById('notepad-editor').innerHTML;
+      notes.active_tab = t.id;
+      renderNotes();
+    });
+    btn.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      noteCtxTarget = t.id;
+      showNoteCtx(e.clientX, e.clientY);
+    });
+    bar.appendChild(btn);
+  });
+
+  const activeBtn = bar.querySelector('.note-tab.active');
+  if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+
+  const note = activeNote();
+  document.getElementById('notepad-editor').innerHTML = note ? note.content : '';
+}
+
+function expandNotes() {
+  document.getElementById('settingsOverlay').classList.remove('show');
+  document.getElementById('notepad-wrap').classList.add('expanded');
+  document.getElementById('notepad-body').classList.add('open');
+  document.getElementById('notepad-toggle').textContent = '▼';
+  localStorage.setItem('notepad-open', '1');
+}
+
+function collapseNotes() {
+  const note = activeNote();
+  if (note) {
+    note.content = document.getElementById('notepad-editor').innerHTML;
+    saveNotes();
+  }
+  document.getElementById('notepad-wrap').classList.remove('expanded');
+  document.getElementById('notepad-body').classList.remove('open');
+  document.getElementById('notepad-toggle').textContent = '▲';
+  localStorage.setItem('notepad-open', '0');
+}
+
+document.getElementById('notepad-toggle').addEventListener('click', e => {
+  e.stopPropagation();
+  document.getElementById('notepad-body').classList.contains('open') ? collapseNotes() : expandNotes();
+});
+
+document.getElementById('notepad-editor').addEventListener('input', () => {
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer = setTimeout(() => {
+    const note = activeNote();
+    if (note) {
+      note.content = document.getElementById('notepad-editor').innerHTML;
+      saveNotes();
+    }
+  }, 800);
+});
+
+document.getElementById('notepad-editor').addEventListener('keyup', updateToolbarState);
+document.getElementById('notepad-editor').addEventListener('mouseup', updateToolbarState);
+
+// Note context menu
+function showNoteCtx(x, y) {
+  document.getElementById('ctxMenu').classList.remove('show');
+  document.getElementById('profileCtxMenu').classList.remove('show');
+  placeMenu(document.getElementById('noteCtxMenu'), x, y);
+}
+
+document.getElementById('noteCtxRename').addEventListener('click', () => {
+  const t = notes.tabs.find(x => x.id === noteCtxTarget);
+  if (t) openNoteModal(t);
+  noteCtxTarget = null;
+});
+
+document.getElementById('noteCtxDelete').addEventListener('click', async () => {
+  if (!noteCtxTarget || notes.tabs.length === 1) return;
+  const current = activeNote();
+  if (current) current.content = document.getElementById('notepad-editor').innerHTML;
+  notes.tabs = notes.tabs.filter(x => x.id !== noteCtxTarget);
+  if (notes.active_tab === noteCtxTarget) notes.active_tab = notes.tabs[0].id;
+  noteCtxTarget = null;
+  await saveNotes();
+  renderNotes();
+});
+
+// Note rename modal
+function openNoteModal(t) {
+  editingNoteId = t.id;
+  document.getElementById('inputNoteName').value = t.name;
+  document.getElementById('noteModalOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('inputNoteName').focus(), 50);
+}
+
+document.getElementById('btnNoteCancel').addEventListener('click', () =>
+  document.getElementById('noteModalOverlay').classList.remove('show'));
+document.getElementById('inputNoteName').addEventListener('keydown', e => { if (e.key === 'Enter') saveNoteTab(); });
+document.getElementById('btnNoteSave').addEventListener('click', saveNoteTab);
+
+async function saveNoteTab() {
+  const name = document.getElementById('inputNoteName').value.trim();
+  if (!name) return;
+  const t = notes.tabs.find(x => x.id === editingNoteId);
+  if (t) t.name = name;
+  await saveNotes();
+  document.getElementById('noteModalOverlay').classList.remove('show');
+  renderNotes();
+}
+
+// ── Formatting toolbar ──
+function updateToolbarState() {
+  document.querySelectorAll('.fmt-btn').forEach(btn => {
+    try { btn.classList.toggle('active', document.queryCommandState(btn.dataset.cmd)); } catch(e) {}
+  });
+}
+
+document.querySelectorAll('.fmt-btn').forEach(btn => {
+  btn.addEventListener('mousedown', e => {
+    e.preventDefault();
+    document.execCommand(btn.dataset.cmd);
+    updateToolbarState();
+  });
+});
+
+document.getElementById('fmt-size').addEventListener('change', function() {
+  document.execCommand('fontSize', false, this.value);
+});
+
+// ── Search suggestions ──
+let suggestTimer = null;
+let suggestActive = -1;
+let suggestItems = [];
+
+const searchInput = document.getElementById('searchInput');
+const suggestList = document.getElementById('suggest-list');
+
+function suggestHide() {
+  suggestList.classList.remove('show');
+  suggestList.innerHTML = '';
+  suggestActive = -1;
+  suggestItems = [];
+}
+
+function suggestShow(items) {
+  suggestList.innerHTML = '';
+  suggestActive = -1;
+  suggestItems = items;
+  if (!items.length) { suggestList.classList.remove('show'); return; }
+  const searchIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>`;
+  items.forEach((text, i) => {
+    const div = document.createElement('div');
+    div.className = 'suggest-item';
+    div.innerHTML = searchIcon + text;
+    div.addEventListener('mousedown', e => {
+      e.preventDefault();
+      searchInput.value = text;
+      suggestHide();
+      document.getElementById('searchForm').submit();
+    });
+    div.addEventListener('mouseover', () => {
+      suggestActive = i;
+      renderSuggestActive();
+    });
+    suggestList.appendChild(div);
+  });
+  suggestList.classList.add('show');
+}
+
+function renderSuggestActive() {
+  suggestList.querySelectorAll('.suggest-item').forEach((el, i) => {
+    el.classList.toggle('active', i === suggestActive);
+  });
+}
+
+searchInput.addEventListener('input', () => {
+  clearTimeout(suggestTimer);
+  const q = searchInput.value.trim();
+  if (!q) { suggestHide(); return; }
+  suggestTimer = setTimeout(async () => {
+    try {
+      const engine = cfg.search_engine || 'google';
+      const res = await apiFetch(`/api/suggest?q=${encodeURIComponent(q)}&engine=${engine}`);
+      const items = await res.json();
+      suggestShow(Array.isArray(items) ? items : []);
+    } catch { suggestHide(); }
+  }, 180);
+});
+
+searchInput.addEventListener('keydown', e => {
+  if (!suggestList.classList.contains('show')) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    suggestActive = Math.min(suggestActive + 1, suggestItems.length - 1);
+    renderSuggestActive();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    suggestActive = Math.max(suggestActive - 1, -1);
+    renderSuggestActive();
+    if (suggestActive === -1) searchInput.value = searchInput.value; // keep typed text
+  } else if (e.key === 'Enter') {
+    if (suggestActive >= 0) {
+      e.preventDefault();
+      searchInput.value = suggestItems[suggestActive];
+      suggestHide();
+      document.getElementById('searchForm').submit();
+    }
+  } else if (e.key === 'Escape') {
+    suggestHide();
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!document.getElementById('searchForm').contains(e.target)) suggestHide();
+});
+
+// ── Boot ──
+if (getToken()) {
+  hideLogin();
+  init();
+} else {
+  showLogin();
+}
+</script>
+</body>
+</html>

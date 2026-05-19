@@ -1,0 +1,14 @@
+services:
+  hatch:
+    build: .                           # remove this line when using the published image
+    # image: ghcr.io/johan/hatch:latest  # uncomment this when using the published image
+    restart: unless-stopped
+    ports:
+      - "7575:8000"        # change 7575 to your preferred port
+    volumes:
+      - hatch_data:/data
+    environment:
+      - HATCH_PASSWORD=changeme  # change this to a secure password
+
+volumes:
+  hatch_data:
