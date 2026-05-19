@@ -141,7 +141,7 @@ If you use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/
 ```
 http://192.168.1.100:7575
 ```
-If `cloudflared` is running on the same machine as Hatch, you can use `localhost:7575` instead. Once the tunnel is set up, access Hatch via your tunnel URL from any device, anywhere.
+If `cloudflared` is running on the same machine as Hatch, you can use `localhost:7575` instead. Once the tunnel is set up, access Hatch via your tunnel URL from any browser, anywhere. Note that Hatch is optimised for desktop browsers.
 
 ---
 
