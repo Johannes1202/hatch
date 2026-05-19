@@ -754,6 +754,168 @@
     color: var(--danger);
     min-height: 18px;
   }
+
+  /* ── Mobile landscape ── */
+  @media (max-width: 900px) and (orientation: landscape) {
+    body {
+      padding-top: 16px;
+      padding-left: 12px;
+      padding-right: 12px;
+      padding-bottom: 80px;
+    }
+
+    #greeting {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      text-align: center;
+      font-size: 17px;
+      margin-bottom: 2px;
+    }
+
+    #clock {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      text-align: center;
+      font-size: 40px;
+      margin-bottom: 2px;
+    }
+
+    #date {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #weather {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    #weather-detail { display: none; }
+
+    .search-section {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .profiles-bar { max-width: 100%; flex-wrap: wrap; }
+
+    .shortcuts {
+      grid-template-columns: repeat(6, 1fr) !important;
+      max-width: 100%;
+      gap: 6px;
+    }
+
+    .tile { padding: 10px 4px; }
+    .favicon-wrap { width: 44px; height: 44px; }
+    .tile-label { font-size: 11px; max-width: 56px; }
+
+    #settings-btn span, #mail-btn span { display: none; }
+    #settings-btn { top: 16px; right: 12px; padding: 6px; }
+    #mail-btn { top: 80px; right: 12px; padding: 6px; }
+
+    #notepad-wrap { width: 100%; }
+    .settings-modal { width: calc(100vw - 32px); }
+  }
+
+  /* ── Mobile portrait ── */
+  @media (max-width: 900px) and (orientation: portrait) {
+    body {
+      padding-top: 16px;
+      padding-left: 12px;
+      padding-right: 12px;
+      padding-bottom: 80px;
+    }
+
+    #greeting {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      text-align: center;
+      font-size: 17px;
+      margin-bottom: 2px;
+    }
+
+    #clock {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      text-align: center;
+      font-size: 48px;
+      margin-bottom: 2px;
+    }
+
+    #date {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    #weather {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    #weather-detail { display: none; }
+
+    .search-section {
+      position: relative;
+      top: auto; left: auto;
+      transform: none;
+      width: 100%;
+      margin-bottom: 20px;
+    }
+
+    .profiles-bar {
+      max-width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .shortcuts {
+      grid-template-columns: repeat(4, 1fr) !important;
+      max-width: 100%;
+      gap: 6px;
+    }
+
+    .tile { padding: 10px 4px; }
+
+    .favicon-wrap {
+      width: 44px;
+      height: 44px;
+    }
+
+    .tile-label {
+      font-size: 11px;
+      max-width: 56px;
+    }
+
+    #settings-btn span,
+    #mail-btn span { display: none; }
+
+    #settings-btn { top: 16px; right: 12px; padding: 6px; }
+    #mail-btn { top: 80px; right: 12px; padding: 6px; }
+
+    #notepad-wrap { width: 100%; }
+
+    .settings-modal { width: calc(100vw - 32px); }
+
+    #suggest-list { border-radius: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -790,7 +952,7 @@
 <div id="greeting"></div>
 <div id="clock"></div>
 <div id="date"></div>
-<div id="weather"><span class="weather-icon">⋯</span><span id="weather-text">Fetching weather...</span></div>
+<div id="weather"><span class="weather-icon">⋯</span><span id="weather-main">Fetching weather...</span><span id="weather-detail"></span></div>
 
 <div class="search-section">
   <form class="search-box" id="searchForm" method="get">
@@ -1154,8 +1316,8 @@ function renderWeather(d) {
   };
   const [icon, desc] = codeMap[d.code] || ['🌡️','Unknown'];
   document.querySelector('.weather-icon').textContent = icon;
-  document.getElementById('weather-text').textContent =
-    d.temp + unit + ' · Feels like ' + d.feels + unit + ' · ' + desc + (d.city ? ' · ' + d.city : '');
+  document.getElementById('weather-main').textContent = d.temp + unit + (d.city ? ' · ' + d.city : '');
+  document.getElementById('weather-detail').textContent = ' · Feels like ' + d.feels + unit + ' · ' + desc;
 }
 
 function loadWeather(lat, lon) {
