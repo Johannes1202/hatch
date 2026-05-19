@@ -137,7 +137,11 @@ http://100.x.x.x:7575
 ```
 
 **From anywhere (Cloudflare Tunnel):**
-If you use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/), point your tunnel at `localhost:7575` and access Hatch via your tunnel URL from any device, anywhere.
+If you use [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/), point your tunnel at the IP of the machine running Hatch and the port you configured:
+```
+http://192.168.1.100:7575
+```
+If `cloudflared` is running on the same machine as Hatch, you can use `localhost:7575` instead. Once the tunnel is set up, access Hatch via your tunnel URL from any device, anywhere.
 
 ---
 
